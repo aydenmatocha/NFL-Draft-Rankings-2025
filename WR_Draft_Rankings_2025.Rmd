@@ -1,0 +1,93 @@
+---
+title: "2025 NFL Draft WR Grades"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(cfbfastR)
+```
+
+```{r}
+WR_Stats <- read.csv("WR_Rankings.csv") %>%
+  arrange(rank) %>%
+  mutate(pos_rank_bef = row_number())
+WR_Stats
+```
+
+test
+```{r}
+pbp_2024 <- load_cfb_pbp(seasons = 2024)
+```
+
+
+```{r}
+wr_players <- WR_Stats$player
+wr_players
+```
+
+
+get players and their mean EPA
+```{r}
+receiver_summary <- pbp_2024 %>%
+  filter(completion == 1) %>%
+  group_by(receiver_player_name) %>%
+  summarize(total_plays = n(), total_epa = sum(EPA, na.rm = TRUE)) %>%
+  filter(!is.na(receiver_player_name), receiver_player_name %in% wr_players) %>%
+  rename(player = receiver_player_name)
+
+receiver_summary
+```
+
+
+
+
+combine datasets
+```{r}
+combined_wr <- WR_Stats %>%
+  left_join(receiver_summary, by = "player")
+combined_wr
+```
+
+
+get means
+```{r}
+mean(combined_wr$rec_grade)
+mean(combined_wr$yprr)
+mean(combined_wr$drop)
+mean(combined_wr$ctc)
+mean(combined_wr$total_epa)
+summary(combined_wr$total_epa)
+```
+
+
+```{r}
+get_wr_values <- function(input_df) {
+  df_wr_copy <- input_df %>% mutate(
+    rec_grade = round(pmax(pmin((rec_grade-60) / 3, 10), 0), 2), # 60-90, mean 75
+    yprr = round(pmax(pmin((yprr-1.5) * 6.67, 10), 0), 2), # 1.5-3, mean 2.25
+    drop = round(pmax(pmin(((100-drop)-90) * 1.67, 10), 0), 2), # 10-4, mean 7
+    ctc = round(pmax(pmin((ctc-35) / 3, 10), 0), 2), # 35-65, mean 50
+    total_epa = round(pmax(pmin((total_epa-30) / 7, 10), 0), 2), # 30-100, mean 65
+  )
+  
+  return(df_wr_copy)
+}
+```
+
+
+```{r}
+new_stats_wr <- get_wr_values(combined_wr) %>% 
+  mutate(total = rowSums(select(., -player, -adp, -total_plays, -rank, -pos_rank_bef, -team))) %>% 
+  arrange(-total) %>% 
+  mutate(pos = "WR", pos_rank_aft = row_number(), pos_rank_diff = pos_rank_bef-pos_rank_aft) %>%
+  select(player, rec_grade, yprr, drop, ctc, total_epa, total, rank, pos, team, pos_rank_bef, pos_rank_aft, pos_rank_diff)
+new_stats_wr
+```
+
+get the dataset that only contains the total and the ranks
+```{r}
+wr_stats_total <- new_stats_wr %>%
+  select(player, total, rank, pos, team, pos_rank_bef, pos_rank_aft, pos_rank_diff)
+wr_stats_total
+```

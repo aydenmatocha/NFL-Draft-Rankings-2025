@@ -1,0 +1,62 @@
+---
+title: "2025 NFL Draft TE Grades"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+```
+
+
+```{r}
+TE_Stats <- read.csv("TE_Rankings.csv")
+TE_Stats <- TE_Stats %>% arrange(rank) %>%
+  mutate(pos_rank_bef = row_number())
+TE_Stats
+```
+
+```{r}
+mean(TE_Stats$rec_grade)
+mean(TE_Stats$rb_grade)
+mean(TE_Stats$yprr)
+mean(TE_Stats$drop)
+mean(TE_Stats$ctc)
+```
+
+
+
+```{r}
+get_te_values <- function(input_df) {
+  df_copy <- input_df %>% mutate(
+    rec_grade = round(pmax(pmin((rec_grade-50) / 4, 10), 0), 2),  # Scale, cap at 10, floor at 0, 50-90
+    rb_grade = round(pmax(pmin((rb_grade-40) / 3, 10), 0), 2), # Scale, cap at 10, floor at 0, 40-70
+    yprr = round(pmax(pmin((yprr-1) * 6.67, 10), 0), 2), # 1-2.5
+    drop = round(pmax(pmin(((100-drop)-90) * 1.33, 10), 0), 2), # 10-2.5
+    ctc = round(pmax(pmin((ctc-25) / 4, 10), 0), 2), # 25-65
+    
+  )
+  
+  
+  
+  return(df_copy)
+}
+```
+
+add a te_rank column
+```{r}
+new_stats_te <- get_te_values(TE_Stats) %>% 
+  mutate(total = rowSums(select(., -player, -adp, -rank, -pos_rank_bef, -team))) %>% 
+  arrange(-total) %>%
+  mutate(pos = "TE", pos_rank_aft = row_number(), pos_rank_diff = pos_rank_bef-pos_rank_aft) %>%
+  select(player, rec_grade, rb_grade, yprr, drop, ctc, total, rank, pos, team, pos_rank_bef, pos_rank_aft, pos_rank_diff)
+new_stats_te 
+```
+
+
+get the dataset that only contains the total and the ranks
+```{r}
+te_stats_total <- new_stats_te %>%
+  select(player, total, rank, pos, team, pos_rank_bef, pos_rank_aft, pos_rank_diff)
+te_stats_total
+```
+

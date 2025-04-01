@@ -1,0 +1,26 @@
+---
+title: "Draft Rankings 2025 Complete List"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(DT)
+```
+
+combine all of the position datasets into one big total dataset
+```{r}
+combined_rankings <- bind_rows(qb_stats_total, rb_stats_total, wr_stats_total, te_stats_total, ot_stats_total, iol_stats_total, dl_stats_total, ed_stats_total, lb_stats_total, cb_stats_total, s_stats_total)
+```
+
+sort the combined rankings by total score
+```{r}
+combined_rankings <- combined_rankings %>%
+  arrange(-total) %>%
+  rename(rank_bef = rank) %>%
+  mutate(rank_aft = row_number(), rank_diff = rank_bef-rank_aft) %>%
+  select(player, total, pos, team, rank_bef, rank_aft, rank_diff, pos_rank_bef, pos_rank_aft, pos_rank_diff)
+datatable(combined_rankings)
+```
+
+

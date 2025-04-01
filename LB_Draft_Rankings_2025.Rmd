@@ -1,0 +1,57 @@
+---
+title: "2025 NFL Draft LB Grades"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+```
+
+
+```{r}
+LB_Stats <- read.csv("LB_Rankings.csv") %>%
+  arrange(rank) %>%
+  mutate(pos_rank_bef = row_number())
+LB_Stats
+```
+
+get means
+```{r}
+mean(LB_Stats$pass_grade)
+mean(LB_Stats$run_grade)
+mean(LB_Stats$cov_grade)
+mean(LB_Stats$missp)
+mean(LB_Stats$passer_rating)
+```
+
+
+```{r}
+get_lb_values <- function(input_df) {
+  df_lb_copy <- input_df %>% mutate(
+    pass_grade = round(pmax(pmin((pass_grade-60) / 2.5, 10), 0), 2),  # 60-85, mean 72.5
+    run_grade = round(pmax(pmin((run_grade-65) / 2, 10), 0), 2), # 65-85, mean 75
+    cov_grade = round(pmax(pmin((cov_grade-50) / 3, 10), 0), 2), # 50-80, mean 65
+    missp = round(pmax(pmin(((100-missp)-83) / 1.2, 10), 0), 2), # 17-5, mean 11
+    passer_rating = round(pmax(pmin(((200-passer_rating)-80) / 5, 10), 0), 2), # 120-70, mean 95
+  )
+  
+  return(df_lb_copy)
+}
+```
+
+
+```{r}
+new_stats_lb <- get_lb_values(LB_Stats) %>% 
+  mutate(total = rowSums(select(., -player, -adp, -rank, -team, -pos_rank_bef))) %>% 
+  arrange(-total) %>% 
+  mutate(pos = "LB", pos_rank_aft = row_number(), pos_rank_diff = pos_rank_bef-pos_rank_aft) %>%
+  select(player, pass_grade, run_grade, cov_grade, missp, passer_rating, total, rank, pos, team, pos_rank_bef, pos_rank_aft, pos_rank_diff)
+new_stats_lb
+```
+
+get the dataset that only contains the total and the ranks
+```{r}
+lb_stats_total <- new_stats_lb %>%
+  select(player, total, rank, pos, team, pos_rank_bef, pos_rank_aft, pos_rank_diff)
+lb_stats_total
+```

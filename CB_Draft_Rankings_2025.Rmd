@@ -1,0 +1,50 @@
+---
+title: "2025 NFL Draft CB Grades"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(DT)
+```
+
+
+```{r}
+CB_Stats <- read.csv("CB_Rankings.csv")
+CB_Stats <- CB_Stats %>%
+  arrange(rank) %>%
+  mutate(pos_rank_bef = row_number())
+datatable(CB_Stats)
+```
+
+
+
+```{r}
+get_cb_values <- function(input_df) {
+  df_cb_copy <- input_df %>% mutate(
+    man_grade = round(pmax(pmin((man_grade-50) / 4, 10), 0), 2),  # Scale, cap at 10, floor at 0, 50-90
+    zone_grade = round(pmax(pmin((zone_grade-50) / 4, 10), 0), 2), # Scale, cap at 10, floor at 0, 50-90
+    comp = round(pmax(pmin(((100-comp)-25)/4, 10), 0), 2), # 75-35
+    passer_rating = round(pmax(pmin(((200-passer_rating)-100)/7, 10), 0), 2), # 100-30
+    missp = round(pmax(pmin(((100-missp)-80)/1.5, 10), 0), 2), # 20-5
+  )
+  return(df_cb_copy)
+}
+```
+
+
+```{r}
+new_stats_cb <- get_cb_values(CB_Stats) %>% 
+  mutate(total = rowSums(select(., -player, -adp, -rank, -pos_rank_bef, -team))) %>% 
+  arrange(-total) %>%
+  mutate(pos = "CB", pos_rank_aft = row_number(), pos_rank_diff = pos_rank_bef-pos_rank_aft) %>%
+  select(player, man_grade, zone_grade, comp, passer_rating, missp, total, rank, pos, team, pos_rank_bef, pos_rank_aft, pos_rank_diff)
+new_stats_cb
+```
+
+get the dataset that only contains the total and the ranks
+```{r}
+cb_stats_total <- new_stats_cb %>%
+  select(player, total, rank, pos, team, pos_rank_bef, pos_rank_aft, pos_rank_diff)
+cb_stats_total
+```

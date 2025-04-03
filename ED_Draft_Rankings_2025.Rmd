@@ -1,24 +1,26 @@
 ---
 title: "2025 NFL Draft ED Grades"
-output:
-  html_document:
-    df_print: paged
+author: "Ayden Matocha"
+date: "4/2/2025"
+output: html_notebook
 ---
 
+# Packages Needed
 ```{r}
 library(tidyverse)
+library(DT)
 ```
 
-
+# Read CSV File
 ```{r}
 ED_Stats <- read.csv("ED_Rankings.csv") %>%
   arrange(rank) %>%
   mutate(pos_rank_bef = row_number())
-ED_Stats
+datatable(ED_Stats)
 ```
 
 
-get means
+# Get Mean Values
 ```{r}
 mean(ED_Stats$pass_grade)
 mean(ED_Stats$run_grade)
@@ -27,15 +29,15 @@ mean(ED_Stats$run_stop)
 mean(ED_Stats$prp)
 ```
 
-
+# Create Values Function
 ```{r}
 get_ed_values <- function(input_df) {
   df_ed_copy <- input_df %>% mutate(
-    pass_grade = round(pmax(pmin((pass_grade-70) / 2, 10), 0), 2),  # Scale, cap at 10, floor at 0, 70-90
-    run_grade = round(pmax(pmin((run_grade-65) / 2, 10), 0), 2), # Scale, cap at 10, floor at 0, 65-85
-    pass_win = round(pmax(pmin((pass_win-10), 10), 0), 2), # 10-20
-    run_stop = round(pmax(pmin((run_stop-4)*2, 10), 0), 2), # 4-9
-    prp = round(pmax(pmin((prp-6)*1.67, 10), 0), 2), # 6-12
+    pass_grade = round(pmax(pmin((pass_grade-70) / 2, 10), 0), 2),  # 70-90, mean 80
+    run_grade = round(pmax(pmin((run_grade-65) / 2, 10), 0), 2), # 65-85, mean 75
+    pass_win = round(pmax(pmin((pass_win-10), 10), 0), 2), # 10-20, mean 15
+    run_stop = round(pmax(pmin((run_stop-4)*2, 10), 0), 2), # 4-9, mean 6.5
+    prp = round(pmax(pmin((prp-6)*1.67, 10), 0), 2), # 6-12, mean 9
     
   )
   
@@ -43,19 +45,20 @@ get_ed_values <- function(input_df) {
 }
 ```
 
-
+# Create Final Dataset
 ```{r}
 new_stats_ed <- get_ed_values(ED_Stats) %>% 
   mutate(total = rowSums(select(., -player, -adp, -rank, -pos_rank_bef, -team))) %>% 
   arrange(-total) %>%
   mutate(pos = "ED", pos_rank_aft = row_number(), pos_rank_diff = pos_rank_bef-pos_rank_aft) %>%
   select(player, pass_grade, run_grade, pass_win, run_stop, prp, total, rank, pos, team, pos_rank_bef, pos_rank_aft, pos_rank_diff)
-new_stats_ed
+datatable(new_stats_ed)
 ```
 
+# Get Total Value and Rank
 get the dataset that only contains the total and the ranks
 ```{r}
 ed_stats_total <- new_stats_ed %>%
   select(player, total, rank, pos, team, pos_rank_bef, pos_rank_aft, pos_rank_diff)
-ed_stats_total
+datatable(ed_stats_total)
 ```

@@ -1,21 +1,25 @@
 ---
 title: "2025 NFL Draft S Grades"
+author: "Ayden Matocha"
+date: "4/2/2025"
 output: html_notebook
 ---
 
+# Packages Needed
 ```{r}
 library(tidyverse)
+library(DT)
 ```
 
-
+# Read CSV File
 ```{r}
 S_Stats <- read.csv("S_Rankings.csv") %>%
   arrange(rank) %>%
   mutate(pos_rank_bef = row_number())
-S_Stats
+datatable(S_Stats)
 ```
 
-get means
+# Get Mean Values
 ```{r}
 mean(S_Stats$man_grade)
 mean(S_Stats$zone_grade)
@@ -24,7 +28,7 @@ mean(S_Stats$missp)
 mean(S_Stats$passer_rating)
 ```
 
-
+# Create Values Function
 ```{r}
 get_s_values <- function(input_df) {
   df_s_copy <- input_df %>% mutate(
@@ -34,24 +38,24 @@ get_s_values <- function(input_df) {
     missp = round(pmax(pmin(((100-missp)-80)/1.4, 10), 0), 2), # 20-6, mean 12.5
     passer_rating = round(pmax(pmin(((200-passer_rating)-80) / 6, 10), 0), 2), # 120-60, mean 85
   )
-  
   return(df_s_copy)
 }
 ```
 
-
+# Create Final Dataset
 ```{r}
 new_stats_s <- get_s_values(S_Stats) %>% 
   mutate(total = rowSums(select(., -player, -adp, -team, -rank, -pos_rank_bef))) %>% 
   arrange(-total) %>% 
   mutate(pos = "S", pos_rank_aft = row_number(), pos_rank_diff = pos_rank_bef-pos_rank_aft) %>%
   select(player, man_grade, zone_grade, run_grade, missp, passer_rating, total, rank, pos, team, pos_rank_bef, pos_rank_aft, pos_rank_diff)
-new_stats_s
+datatable(new_stats_s)
 ```
 
+# Get Total Value and Rank
 get the dataset that only contains the total and the ranks
 ```{r}
 s_stats_total <- new_stats_s %>%
   select(player, total, rank, pos, team, pos_rank_bef, pos_rank_aft, pos_rank_diff)
-s_stats_total
+datatable(s_stats_total)
 ```

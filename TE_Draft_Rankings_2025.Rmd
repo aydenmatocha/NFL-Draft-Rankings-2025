@@ -62,3 +62,8 @@ te_stats_total <- new_stats_te %>%
 datatable(te_stats_total)
 ```
 
+# Download Final Rankings
+```{r}
+write.csv(te_stats_total, "te_stats_total.csv", row.names = FALSE)
+```
+

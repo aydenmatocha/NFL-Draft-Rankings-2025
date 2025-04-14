@@ -98,3 +98,8 @@ wr_stats_total <- new_stats_wr %>%
   select(player, total, rank, pos, team, pos_rank_bef, pos_rank_aft, pos_rank_diff)
 datatable(wr_stats_total)
 ```
+
+# Download Final Rankings
+```{r}
+write.csv(wr_stats_total, "wr_stats_total.csv", row.names = FALSE)
+```

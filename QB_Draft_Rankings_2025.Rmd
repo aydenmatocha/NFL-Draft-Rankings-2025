@@ -92,3 +92,8 @@ qb_stats_total <- new_stats_qb %>%
   select(player, total, rank, pos, team, pos_rank_bef, pos_rank_aft, pos_rank_diff)
 datatable(qb_stats_total)
 ```
+
+# Download Final Rankings
+```{r}
+write.csv(qb_stats_total, "qb_stats_total.csv", row.names = FALSE)
+```

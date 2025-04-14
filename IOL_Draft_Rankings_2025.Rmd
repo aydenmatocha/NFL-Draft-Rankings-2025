@@ -64,3 +64,8 @@ iol_stats_total <- new_stats_iol %>%
   select(player, total, rank, pos, team, pos_rank_bef, pos_rank_aft, pos_rank_diff)
 datatable(iol_stats_total)
 ```
+
+# Download Final Rankings
+```{r}
+write.csv(iol_stats_total, "iol_stats_total.csv", row.names = FALSE)
+```

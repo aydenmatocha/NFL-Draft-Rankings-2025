@@ -60,5 +60,10 @@ get the dataset that only contains the total and the ranks
 ```{r}
 lb_stats_total <- new_stats_lb %>%
   select(player, total, rank, pos, team, pos_rank_bef, pos_rank_aft, pos_rank_diff)
-lb_stats_total
+datatable(lb_stats_total)
+```
+
+# Download Final Rankings
+```{r}
+write.csv(lb_stats_total, "lb_stats_total.csv", row.names = FALSE)
 ```
